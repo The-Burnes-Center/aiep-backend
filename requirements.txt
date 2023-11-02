@@ -14,7 +14,6 @@ cffi==1.16.0
 cfgv==3.4.0
 chardet==4.0.0
 charset-normalizer==3.3.1
-chrome-gnome-shell==0.0.0
 click==8.1.7
 cmake==3.27.7
 colorama==0.4.4
