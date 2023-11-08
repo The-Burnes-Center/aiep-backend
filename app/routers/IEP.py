@@ -1,7 +1,5 @@
 import base64, requests, os
 from openai import OpenAI
-from PIL import Image
-from pathlib import Path
 from fastapi import APIRouter, HTTPException, File, UploadFile
 from fastapi.responses import JSONResponse
 
