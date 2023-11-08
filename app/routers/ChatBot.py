@@ -6,6 +6,7 @@ router = APIRouter()
 
 @router.post("/chatbot/")
 async def create_upload_file(prompt:str):
+    print(f"Received prompt: {prompt}") 
     try:
         return JSONResponse(content={'response': prompt + '? blah blah blah'}, status_code=200)
     except Exception as e:
