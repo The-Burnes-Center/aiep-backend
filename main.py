@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 import uvicorn
-from app.routers import AGO
+from app.routers import AGO, IEP, ChatBot
 from app.utils.logger import logger
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -13,7 +13,8 @@ app.add_middleware(
     allow_headers=["*"],  # Allow all headers or specify which ones are allowed
 )
 app.include_router(AGO.router)
-
+app.include_router(IEP.router)
+app.include_router(ChatBot.router)
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, log_level='info')
