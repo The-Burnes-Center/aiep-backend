@@ -1,4 +1,4 @@
-import fitz, base64, requests, os
+import base64, requests, os
 from openai import OpenAI
 from PIL import Image
 from pathlib import Path
