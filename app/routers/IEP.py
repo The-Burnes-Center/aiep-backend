@@ -1,4 +1,5 @@
 import base64, requests, os
+from pdf2image import convert_from_path
 from openai import OpenAI
 from fastapi import APIRouter, HTTPException, File, UploadFile
 from fastapi.responses import JSONResponse
@@ -40,35 +41,32 @@ def chatgpt_response(prompt:str, text: str) -> str:
         {"role": "user", "content": text}])
     return response.choices[0].message.content
 
-def translate_summarize(pdf_path: str, image_folder:str, image_format:str='jpeg'):
+def translate_summarize(pdf_path: str, image_folder:str, language:str, image_format:str='jpeg'):
     # Open the PDF file
-    pdf = fitz.open(pdf_path)
+    images = convert_from_path(pdf_path)
     translated_pages = []
     full_translation = ''
     if not os.path.exists(image_folder):
         # If it does not exist, create it
         os.makedirs(image_folder)
     # Iterate over each page
-    for page_num in range(len(pdf)):
+    for page_num in range(len(images)):
         # Get the page
-        page = pdf[page_num]
-        # Render page to an image
-        pix = page.get_pixmap()
+        image = images[page_num]
         # Define the output image path
         image_path = f"{image_folder}/page_{page_num + 1}.{image_format}"
         # Save the image
-        pix.save(image_path)
+        image.save('page.png', 'PNG')
         text = image_to_text(image_path)
-        translated_text = translate_text(text,'Simplified Chinese')
+        translated_text = translate_text(text,language)
         translated_pages.append(translated_text)
         full_translation += f"Page {page_num + 1}:\n" + translated_text
     # Close the PDF after processing
-    summarized_text = summarize_text(text, 'Simplified Chinese')
-    pdf.close()
+    summarized_text = summarize_text(text,language)
     return translated_pages, summarized_text
 
 @router.post("/upload/")
-async def create_upload_file(file: UploadFile = File(...)):
+async def create_upload_file(file: UploadFile = File(...), ):
     try:
         file_location = f"{'iep.pdf'}"
         os.makedirs(os.path.dirname(file_location), exist_ok=True)
