@@ -66,13 +66,13 @@ def translate_summarize(pdf_path: str, image_folder:str, language:str, image_for
     return translated_pages, summarized_text
 
 @router.post("/upload/")
-async def create_upload_file(file: UploadFile = File(...), ):
+async def create_upload_file(language:str='Spanish',file: UploadFile = File(...)):
     try:
         file_location = f"{'iep.pdf'}"
         os.makedirs(os.path.dirname(file_location), exist_ok=True)
         with open(file_location, "wb+") as file_object:
             file_object.write(file.file.read())
-        translated_pages, summarized_text = translate_summarize('iep.pdf', './pages')
+        translated_pages, summarized_text = translate_summarize('iep.pdf', './pages', language)
         return JSONResponse(content={"pageData": translated_pages, 'summary': summarized_text}, status_code=200)
     except Exception as e:
         return JSONResponse(content={"message": str(e)}, status_code=500)
