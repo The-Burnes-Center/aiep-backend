@@ -17,9 +17,9 @@ app.add_middleware(
 )
 
 # Ping Frontend to combat heroku's dyno
-async def send_ping_message(websocket):
+async def send_ping_message(websocket: WebSocket):
     while True:
-        await asyncio.sleep(30)  # Send a ping every 30 seconds
+        await asyncio.sleep(10)  # Send a ping every 10 seconds
         try:
             await websocket.send_text('ping')
         except:
