@@ -16,6 +16,7 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
+# Ping Frontend to combat heroku's dyno
 async def send_ping_message(websocket):
     while True:
         await asyncio.sleep(30)  # Send a ping every 30 seconds
