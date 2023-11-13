@@ -4,7 +4,7 @@ from IEPAssistant import IEPAssistant
 from IEPTranslator import IEPTranslator
 from time import sleep
 from openai import OpenAI
-import io, json, os
+import io, json, os, asyncio
 
 app = FastAPI()
 
@@ -16,9 +16,22 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
+async def send_ping_message(websocket):
+    while True:
+        await asyncio.sleep(30)  # Send a ping every 30 seconds
+        try:
+            await websocket.send_text('ping')
+        except:
+            break  # Connection is closed or encountered an error
+
+active_connections = set()
+
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
+    active_connections.add(websocket)
+    asyncio.create_task(send_ping_message(websocket))
+
     print('Websocket Accepted')
     api_key = os.getenv("OPENAI_KEY")
     client = OpenAI(api_key=api_key)
@@ -77,6 +90,7 @@ async def websocket_endpoint(websocket: WebSocket):
                         language = text_data["data"]
                         print("Language Configured")
             except WebSocketDisconnect:
+                active_connections.remove(websocket)
                 print("Client disconnected")
                 break
     except Exception as e:
