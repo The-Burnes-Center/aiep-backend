@@ -2,7 +2,6 @@ from io import BytesIO, BufferedReader
 from openai import OpenAI
 from json import loads
 from re import sub
-from boto.s3.connection import S3Connection
 
 # Wrapper configuring OpenAI for IEP Chatbot. Create Message
 class IEPAssistant:
