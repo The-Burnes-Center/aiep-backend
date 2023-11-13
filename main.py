@@ -4,7 +4,7 @@ from IEPAssistant import IEPAssistant
 from IEPTranslator import IEPTranslator
 from time import sleep
 from openai import OpenAI
-import io, json
+import io, json, os
 
 app = FastAPI()
 
@@ -20,7 +20,7 @@ app.add_middleware(
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     print('Websocket Accepted')
-    api_key = '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'
+    api_key = os.getenv("OPENAI_KEY")
     client = OpenAI(api_key=api_key)
     assistant = IEPAssistant(client)
     translator = IEPTranslator(client, api_key)
