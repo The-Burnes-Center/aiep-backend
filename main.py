@@ -4,7 +4,7 @@ from IEPAssistant import IEPAssistant
 from IEPTranslator import IEPTranslator
 from time import sleep
 from openai import OpenAI
-import io, json, os, asyncio
+import io, json, os, asyncio, re
 
 app = FastAPI()
 
@@ -27,6 +27,38 @@ async def send_ping_message(websocket: WebSocket):
 
 active_connections = set()
 
+def get_l2_prompts(assistant: IEPAssistant) -> list[str]:
+    def extract_ordered_list(text) -> list[str]:
+        matches = re.findall(r'^[1-5]\..*$', text, re.MULTILINE)
+        if len(matches) != 5: raise Exception("Couldn't find 5 prompts")
+        return matches
+    print('Got Response')
+    msg = "What are five questions to ask ChatGPT specifically about my child's IEP? Provide questions that would give concise, easily understandable answers that are most pressing to the topic. Respond in English with each question on a new line." # input('Enter Question: ')
+    assistant.add_message(msg)
+    assistant.run()
+    while not assistant.has_finished():
+        print('Retrieving Data...')
+        sleep(4)
+    response = assistant.get_latest_message()
+    return extract_ordered_list(response)
+
+def get_l3_prompts(client:OpenAI, assistant: IEPAssistant) -> object:
+    msg = "Summarize 5 of the most pressing issues in the child's IEP in no more than 200 words. Give a block of text and nothing more."
+    assistant.add_message(msg)
+    assistant.run()
+    while not assistant.has_finished():
+        print('Retrieving Data...')
+        sleep(4)
+    res = assistant.get_latest_message()
+    questions = client.chat.completions.create(
+    model="gpt-3.5-turbo-1106",
+    response_format={ "type": "json_object" },
+    messages=[
+        {"role": "system", "content": "You are given a summary of a child's performance from an IEP. You give the most pressing questions whose answers can be found in the summary." + "Return the 5 of the most pressing questions in JSON Format with each assigned by priority to 'question 1', 'question 2' etc respectively."},
+        {"role": "user", "content": 'Summary: ' + res}
+    ])
+    return questions.choices[0].message.content
+
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
@@ -47,8 +79,13 @@ async def websocket_endpoint(websocket: WebSocket):
                     file_data = websocket_data["bytes"]
                     print('File Data Parsed')
                     iep_data = io.BufferedReader(io.BytesIO(file_data))
+                    print("Configuring IEP")
                     assistant.config_iep(iep_data)
                     print('File Data Configured for chatbot')
+                    questions = get_l2_prompts(assistant)
+                    print('Prompts Calculated')
+                    await websocket.send_text(json.dumps({"type": "response", "message": '\n'.join(questions)}))
+                    print("Prompts Sent Over")
                 elif "text" in websocket_data:
                     text_data = json.loads(websocket_data["text"])
                     text_type = text_data["type"]
