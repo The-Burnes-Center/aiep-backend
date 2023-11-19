@@ -36,7 +36,7 @@ class IEPAssistant:
         run = self.client.beta.threads.runs.create(
             thread_id=self.thread_id,
             assistant_id=self.assistant_id,
-            instructions="Please respond to the user with basic words in their native language.")
+            instructions="Please respond to the user with basic words in English.")
         self.run_id = run.id # Need Validation
         return run.id
         
