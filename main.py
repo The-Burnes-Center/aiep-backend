@@ -27,21 +27,21 @@ async def send_ping_message(websocket: WebSocket):
 
 active_connections = set()
 
-def get_translation(client: OpenAI, fileData: io.BytesIO) -> str:
+def get_translation(client: OpenAI, fileData: io.BytesIO) -> list[str]:
     doc = fitz.open(stream=fileData, filetype='pdf')
-    txt=''
+    translated_list = []
     for page_number in range(doc.page_count):
         page = doc[page_number]
         text = page.get_text()
-        txt += text
-    response = client.chat.completions.create(
-    model="gpt-3.5-turbo-1106",
-    response_format={ "type": "text" },
-    messages=[
-        {"role": "system", "content": "You are a helpful assistant designed to display .txt files in an aesthetically pleasing way."},
-        {"role": "user", "content": "Take this string of text and clean it up into an HTML file that is legible. The original document"+
-        "includes checkboxes and redacted information. Here is the"+ f"string of text: {txt}"}])
-    return response.choices[0].message.content
+        response = client.chat.completions.create(
+        model="gpt-3.5-turbo-1106",
+        response_format={ "type": "text" },
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant designed to display .txt files in an aesthetically pleasing way."},
+            {"role": "user", "content": "Take this string of text and clean it up into an HTML file that is legible. The original document"+
+            "includes checkboxes and redacted information. Here is the"+ f"string of text: {text}"}])
+        translated_list.append(response.choices[0].message.content)
+    return translated_list
 
 def get_l2_prompts(assistant: IEPAssistant) -> list[str]:
     def extract_ordered_list(text) -> list[str]:
@@ -124,9 +124,10 @@ async def websocket_endpoint(websocket: WebSocket):
                     elif text_type == 'translation':
                         print('Translation Request Received')
                         if not file_data: raise Exception('Need to Upload File First')
-                        translated_text = get_translation(client,io.BytesIO(file_data))
+                        translated_list = get_translation(client,io.BytesIO(file_data))
                         print('Translation Generated')
-                        await websocket.send_text(json.dumps({"type": "translation", "message": translated_text}))
+                        for page_num, translated_page in enumerate(translated_list):
+                            await websocket.send_text(json.dumps({"type": "translation", "message": str(page_num + 1) + '/n' + translated_page}))
                         print('Response Sent')
                     elif text_type == 'language':
                         print("Language Request Received")
