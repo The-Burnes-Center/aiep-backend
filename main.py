@@ -124,7 +124,7 @@ async def websocket_endpoint(websocket: WebSocket):
                     elif text_type == 'translation':
                         print('Translation Request Received')
                         if not file_data: raise Exception('Need to Upload File First')
-                        translated_text = get_translation(io.BytesIO(file_data))
+                        translated_text = get_translation(client,io.BytesIO(file_data))
                         print('Translation Generated')
                         await websocket.send_text(json.dumps({"type": "translation", "message": translated_text}))
                         print('Response Sent')
