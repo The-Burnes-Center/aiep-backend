@@ -1,7 +1,6 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from IEPAssistant import IEPAssistant
-from IEPTranslator import IEPTranslator
+from app.GPTTools import GPTChatCompletion, GPTAssistant
 from time import sleep
 from openai import OpenAI
 import io, json, os, asyncio, re, fitz
@@ -27,7 +26,7 @@ async def send_ping_message(websocket: WebSocket):
 
 active_connections = set()
 
-def get_l2_prompts(assistant: IEPAssistant) -> list[str]:
+def get_l2_prompts(assistant: GPTAssistant) -> list[str]:
     def extract_ordered_list(text) -> list[str]:
         matches = re.findall(r'^[1-5]\..*$', text, re.MULTILINE)
         if len(matches) != 5: raise Exception("Couldn't find 5 prompts")
@@ -42,7 +41,7 @@ def get_l2_prompts(assistant: IEPAssistant) -> list[str]:
     response = assistant.get_latest_message()
     return extract_ordered_list(response)
 
-def get_l3_prompts(client:OpenAI, assistant: IEPAssistant) -> object:
+def get_l3_prompts(client:OpenAI, assistant: GPTAssistant) -> object:
     msg = "Summarize 5 of the most pressing issues in the child's IEP in no more than 200 words. Give a block of text and nothing more."
     assistant.add_message(msg)
     assistant.run()
@@ -68,8 +67,7 @@ async def websocket_endpoint(websocket: WebSocket):
     print('Websocket Accepted')
     api_key = os.getenv("OPENAI_KEY")
     client = OpenAI(api_key=api_key)
-    assistant = IEPAssistant(client)
-    translator = IEPTranslator(client, api_key)
+    assistant = GPTAssistant(client)
     file_data, language = None, None
     try:
         while True:
