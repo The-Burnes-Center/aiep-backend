@@ -25,7 +25,6 @@ class GPTChatCompletion:
             messages=self.messages)
         return response.choices[0].message.content
 
-# Wrapper configuring OpenAI for IEP Chatbot. Create Message
 class GPTAssistant:
     def __init__(self, client: OpenAI) -> None:
         self.client = client
