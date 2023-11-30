@@ -1,6 +1,11 @@
 # API Message Models
 ## Supported Features
-
+- High Accuracy OCR scanning with Minimum Loss of Information with PyPDF's Fitz Library (previously using ChatGPT's Vision Library)
+- Supports Upload and Retrieval of Custom IEP files with unique file id
+- Prompt Generation using the OpenAI's Assistant beta feature that uses the San Francisco IEP Guidebook and Uploaded Custom IEP to generate Situation Specific Prompts
+- Translation using the Assistant's beta feature and GPT4-preview-1106's chat completion with Azure translation back-up option
+- Chatbot messaging using the Assistant's beta feature
+- Ping-pong messaging via Websocket Connection to prevent cloud server's scheduler from refreshing the application mid-communication
 
 ## Hosting Details
 Back end server is host on: https://iep-backend-2422fe6f9d4d.herokuapp.com/
