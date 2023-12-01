@@ -4,24 +4,26 @@ from json import loads
 from re import sub
 from enum import Enum
 
-class Role(Enum):
+class GPTRole(Enum):
     USER = 'user'
     SYSTEM = 'system'
     ASSISTANT = 'assistant'
 
 class GPTChatCompletion:
-    def __init__(self, client: OpenAI, isResponseJson: bool) -> None:
+    def __init__(self, client: OpenAI, isResponseJson: bool=False, language: str='Espanol') -> None:
         self.messages = []
         self.client = client
         self.isResponseJson = isResponseJson
+        self.add_message(GPTRole.SYSTEM, f'Please Return All Answers In {language}')
     
-    def add_message(self, role: Role, msg: str):
+    def add_message(self, role: GPTRole, msg: str):
         self.messages.append({'role': role.value, 'content': msg})
 
     def get_completion(self):
+        response_type = 'json_object' if self.isResponseJson else 'text'
         response = self.client.chat.completions.create(
             model='gpt-3.5-turbo-1106',
-            response_format={'type': 'json_object' if self.isResponseJson else 'text'},
+            response_format={'type': response_type},
             messages=self.messages)
         return response.choices[0].message.content
 
@@ -30,15 +32,26 @@ class GPTAssistant:
         self.client = client
         self.assistant = None
         self.thread = None
+        self.files = ['file-gj95bmlJ6MLyVuSpmLTuKqk7']
+        self.language = 'Espanol'
+    
+    def config_language(self, language: str):
+        self.language = language
+    
+    def add_file(self, file_id: str):
+        self.files.append(file_id)
 
-    def config_iep(self, iep: BytesIO) -> str:
+    def upload_file(self, iep: BytesIO) -> str:
         file = self.client.files.create(file=BufferedReader(iep),purpose='assistants')
+        return file.id
+
+    def build(self) -> str:
         assistant = self.client.beta.assistants.create(
             name='IEP Chatbot',
-            instructions="IEP Chatbot that answers parents' questions regarding their child's Individualized Education Plan and Program specific to San Francisco's Educational Rules and Guidelines.",
+            instructions=f"IEP Chatbot that answers parents' questions in {self.language} regarding their child's Individualized Education Plan and Program specific to San Francisco's Educational Rules and Guidelines.",
             tools=[{'type': 'retrieval'}],
             model='gpt-4-1106-preview',
-            file_ids=['file-gj95bmlJ6MLyVuSpmLTuKqk7', file.id])
+            file_ids=self.files)
         self.assistant_id = assistant.id # Need Validation
         return assistant.id
     
