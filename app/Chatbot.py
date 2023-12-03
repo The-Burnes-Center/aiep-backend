@@ -7,14 +7,17 @@ import json
 import re
 import fitz
 
+CHAR_LIMIT = 1500
+CHAR_LIMIT_MESSAGE = 'Limit your response to {CHAR_LIMIT} characters.'
 SF_HANDBOOK_FILE_ID = 'file-gj95bmlJ6MLyVuSpmLTuKqk7'
 L2_PROMPT_MSG = "What are five questions to ask ChatGPT specifically about my child's IEP? Provide questions that would give concise, easily understandable answers that are most pressing to the topic. Respond in English with each question on a new line."
 L3_PROMPT_MSG_ASST = "Summarize 5 of the most pressing issues in the child's IEP in no more than 200 words. Give a block of text and nothing more."
 L3_PROMPT_MS_SYS = "You are given a summary of a child's performance from an IEP. You give the most pressing questions about the IEP whose answers cannot be found in the summary in JSON Format labelled by 'question 1', 'question 2' etc respectively."
 TRANSLATION_PROMPT_SYS = "You are a helpful assistant designed to display .txt files in an aesthetically pleasing way."
 TRANSLATION_PROMPT_USR = "Take this string of text and clean it up into an HTML file that is legible. The original document includes checkboxes and redacted information."
-CHATBOT_ASST_INSTRUCTIONS_ATT = "IEP Chatbot that answers parents' questions regarding their child's Individualized Education Plan (Document Attached) according to San Francisco's Educational Rules and Guidelines (Handbook Attached)."
-CHATBOT_ASST_INSTRUCTIONS_EMPTY = "IEP Chatbot that answers parents' questions regarding their child's Individualized Education Plan and Process specific to San Francisco's Educational Rules and Guidelines (Handbook Attached)."
+CHATBOT_ASST_INSTRUCTIONS_ATT = "IEP Chatbot that answers parents' questions regarding their child's Individualized Education Plan (Document Attached) according to San Francisco's Educational Rules and Guidelines (Handbook Attached)." + CHAR_LIMIT_MESSAGE
+CHATBOT_ASST_INSTRUCTIONS_EMPTY = "IEP Chatbot that answers parents' questions regarding their child's Individualized Education Plan and Process specific to San Francisco's Educational Rules and Guidelines (Handbook Attached)." + \
+    CHAR_LIMIT_MESSAGE
 DEFAULT_PROMPTS = ["Can you summarize the first page of my IEP document?",
                    "What are the key components of an IEP?",
                    "How do I know if my child is eligible for an IEP?",
@@ -46,7 +49,7 @@ class Chatbot:
 
     def _generate_l2_prompts(self):
         def extract_ordered_list(text) -> List[str]:
-            matches = re.findall(r'^[1-5]\..*$', text, re.MULTILINE)
+            matches = re.findall(r'^[1-5]\. (.*)$', text, re.MULTILINE)
             if len(matches) != 5:
                 raise Exception("Couldn't find 5 prompts")
             return matches
