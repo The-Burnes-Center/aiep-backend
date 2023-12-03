@@ -68,5 +68,5 @@ After sending a message to the chatbot, the backend server will return a generat
 
 ### Error Handling
 ```
-{"error": str}
+{"type": "error", "message": str}
 ```

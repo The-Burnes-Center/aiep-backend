@@ -50,5 +50,5 @@ async def websocket_endpoint(websocket: WebSocket):
             print("Client disconnected")
             break
         except Exception as e:
-            await websocket.send_text(json.dumps({'error':e}))
+            await websocket.send_text(json.dumps({'type': 'error', 'message': e}))
 
