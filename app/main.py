@@ -31,7 +31,9 @@ async def websocket_endpoint(websocket: WebSocket):
             websocket_message = await websocket.receive()
             if "bytes" in websocket_message:
                 print('Byte Data Received')
-                await chatbot.upload_file(websocket, io.BytesIO(websocket_message["bytes"]))
+                file_data = io.BytesIO(websocket_message["bytes"])
+                await chatbot.upload_file(websocket, file_data)
+                file_data.close()  # Close the stream after using it
             elif "text" in websocket_message:
                 message_data = json.loads(websocket_message["text"])
                 print(message_data)
@@ -51,5 +53,7 @@ async def websocket_endpoint(websocket: WebSocket):
             print("Client disconnected")
             break
         except Exception as e:
-            await websocket.send_text(json.dumps({'type': 'error', 'message': e}))
+            error_message = str(e)  # Convert exception to string
+            await websocket.send_text(json.dumps({'type': 'error', 'message': error_message}))
+            break  # Consider breaking the loop or handling the error differently
 

@@ -1,8 +1,11 @@
 from fastapi import WebSocket
 from app.GPTTools import create_client, GPTRole, GPTChatCompletion, GPTAssistant
 from time import sleep
-from openai import OpenAI
-import io, json, os, asyncio, re, fitz
+from typing import List
+import io
+import json
+import re
+import fitz
 
 SF_HANDBOOK_FILE_ID = 'file-gj95bmlJ6MLyVuSpmLTuKqk7'
 L2_PROMPT_MSG = "What are five questions to ask ChatGPT specifically about my child's IEP? Provide questions that would give concise, easily understandable answers that are most pressing to the topic. Respond in English with each question on a new line."
@@ -13,36 +16,39 @@ TRANSLATION_PROMPT_USR = "Take this string of text and clean it up into an HTML 
 CHATBOT_ASST_INSTRUCTIONS_ATT = "IEP Chatbot that answers parents' questions regarding their child's Individualized Education Plan (Document Attached) according to San Francisco's Educational Rules and Guidelines (Handbook Attached)."
 CHATBOT_ASST_INSTRUCTIONS_EMPTY = "IEP Chatbot that answers parents' questions regarding their child's Individualized Education Plan and Process specific to San Francisco's Educational Rules and Guidelines (Handbook Attached)."
 DEFAULT_PROMPTS = ["Can you summarize the first page of my IEP document?",
-    "What are the key components of an IEP?",
-    "How do I know if my child is eligible for an IEP?",
-    "What should I expect during an IEP meeting?",
-    "How can I prepare for my child's IEP meeting?",
-    "What are my child's legal rights concerning IEPs?",
-    "How often will my child's IEP be reviewed?",
-    "Who will be involved in creating my child's IEP?",
-    "Can you explain the different sections of an IEP?",
-    "What if I disagree with the IEP recommendations?",
-    "How do I track my child's progress on IEP goals?",
-    "What services are available to my child with an IEP?",
-    "How can I modify my child's IEP if necessary?",
-    "Who do I contact if I have concerns about my child's IEP?",
-    "Can family members attend the IEP meeting?",
-    "What are SMART goals in an IEP, and why are they important?"]
+                   "What are the key components of an IEP?",
+                   "How do I know if my child is eligible for an IEP?",
+                   "What should I expect during an IEP meeting?",
+                   "How can I prepare for my child's IEP meeting?",
+                   "What are my child's legal rights concerning IEPs?",
+                   "How often will my child's IEP be reviewed?",
+                   "Who will be involved in creating my child's IEP?",
+                   "Can you explain the different sections of an IEP?",
+                   "What if I disagree with the IEP recommendations?",
+                   "How do I track my child's progress on IEP goals?",
+                   "What services are available to my child with an IEP?",
+                   "How can I modify my child's IEP if necessary?",
+                   "Who do I contact if I have concerns about my child's IEP?",
+                   "Can family members attend the IEP meeting?",
+                   "What are SMART goals in an IEP, and why are they important?"]
+
 
 class Chatbot:
     def __init__(self, api_key=str) -> None:
         self.client = create_client(api_key)
-        self.assistant= GPTAssistant(self.client)
+        self.assistant = GPTAssistant(self.client)
         self.language_config = None
         self.assistant.add_file(SF_HANDBOOK_FILE_ID)
-    
+
     def _validate_language_config(self):
-        if not self.language_config: raise Exception('Chatbot Language Not Configured')
-    
+        if not self.language_config:
+            raise Exception('Chatbot Language Not Configured')
+
     def _generate_l2_prompts(self):
-        def extract_ordered_list(text) -> list[str]:
+        def extract_ordered_list(text) -> List[str]:
             matches = re.findall(r'^[1-5]\..*$', text, re.MULTILINE)
-            if len(matches) != 5: raise Exception("Couldn't find 5 prompts")
+            if len(matches) != 5:
+                raise Exception("Couldn't find 5 prompts")
             return matches
         print('Got Response')
         self.assistant.add_message(L2_PROMPT_MSG)
@@ -60,12 +66,13 @@ class Chatbot:
             print('Retrieving Data...')
             sleep(4)
         res = self.assistant.get_latest_message()
-        chat_completion = GPTChatCompletion(self.client, True, self.language_config)
+        chat_completion = GPTChatCompletion(
+            self.client, True, self.language_config)
         chat_completion.add_message(GPTRole.SYSTEM, L3_PROMPT_MS_SYS)
         chat_completion.add_message(GPTRole.USER, 'Summary: ' + res)
         return chat_completion.get_completion()
-    
-    async def configure_language(self, ws:WebSocket, language_config:str):
+
+    async def configure_language(self, ws: WebSocket, language_config: str):
         self.language_config = language_config
         print('Language Configured')
         await ws.send_text(json.dumps({"type": "language_configuration", "status": "complete"}))
@@ -82,9 +89,11 @@ class Chatbot:
             page = doc[page_number]
             text = page.get_text()
             print('Text Retreived')
-            chat_completion = GPTChatCompletion(self.client, False, self.language_config)
+            chat_completion = GPTChatCompletion(
+                self.client, False, self.language_config)
             chat_completion.add_message(GPTRole.SYSTEM, TRANSLATION_PROMPT_SYS)
-            chat_completion.add_message(GPTRole.USER, f"{TRANSLATION_PROMPT_USR} Here is the string of text: {text}")
+            chat_completion.add_message(
+                GPTRole.USER, f"{TRANSLATION_PROMPT_USR} Here is the string of text: {text}")
             translated_text_response = chat_completion.get_completion()
             translated_text_html = extract_html(translated_text_response)
             print('Response Received')
@@ -100,7 +109,7 @@ class Chatbot:
         print('File Data Configured for chatbot')
         image_data_bytes = self.client.files.retrieve_content(file_id)
         await self._generate_translation(ws, io.BytesIO(image_data_bytes))
-    
+
     async def upload_file(self, ws: WebSocket, file_data: io.BytesIO):
         self._validate_language_config()
         iep_data = io.BufferedReader(file_data)
@@ -112,10 +121,11 @@ class Chatbot:
         await self.generate_prompts(ws)
         print('File Data Configured for chatbot')
         await self._generate_translation(ws, file_data)
-    
+
     async def generate_prompts(self, ws: WebSocket):
         self._validate_language_config()
-        questions = self._generate_l2_prompts() if self.assistant.hasBuilt else DEFAULT_PROMPTS
+        questions = self._generate_l2_prompts(
+        ) if self.assistant.hasBuilt else DEFAULT_PROMPTS
         print('Prompts Calculated')
         await ws.send_text(json.dumps({"type": "generated_prompts", "content": questions}))
         print(questions)
@@ -123,7 +133,8 @@ class Chatbot:
 
     async def generate_response(self, ws: WebSocket, message: str):
         self._validate_language_config()
-        if not self.assistant.hasBuilt: self.assistant.build(CHATBOT_ASST_INSTRUCTIONS_EMPTY)
+        if not self.assistant.hasBuilt:
+            self.assistant.build(CHATBOT_ASST_INSTRUCTIONS_EMPTY)
         self.assistant.add_message(message)
         print('Message Data Configured')
         self.assistant.run()
@@ -135,5 +146,3 @@ class Chatbot:
         print('Got Response')
         await ws.send_text(json.dumps({"type": "chat_completion", "content": response}))
         print('Response Sent')
-
-    
