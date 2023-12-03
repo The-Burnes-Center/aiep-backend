@@ -34,6 +34,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 await chatbot.upload_file(websocket, io.BytesIO(websocket_message["bytes"]))
             elif "text" in websocket_message:
                 message_data = json.loads(websocket_message["text"])
+                print(message_data)
                 message_type = message_data["type"]
                 if message_type == 'pong':
                     print("Pong Received")
