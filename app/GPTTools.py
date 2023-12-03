@@ -4,6 +4,12 @@ from json import loads
 from re import sub
 from enum import Enum
 
+def create_client(api_key=str) -> OpenAI:
+    try:
+        return OpenAI(api_key=api_key)
+    except Exception as e:
+        raise Exception(f'Cannot Configure Client, Invalid API Key: {e}')
+
 class GPTRole(Enum):
     USER = 'user'
     SYSTEM = 'system'
@@ -32,8 +38,9 @@ class GPTAssistant:
         self.client = client
         self.assistant = None
         self.thread = None
-        self.files = ['file-gj95bmlJ6MLyVuSpmLTuKqk7']
+        self.files = []
         self.language = 'Espanol'
+        self.hasBuilt = False
     
     def config_language(self, language: str):
         self.language = language
@@ -45,14 +52,15 @@ class GPTAssistant:
         file = self.client.files.create(file=BufferedReader(iep),purpose='assistants')
         return file.id
 
-    def build(self) -> str:
+    def build(self, instructions: str) -> str:
         assistant = self.client.beta.assistants.create(
             name='IEP Chatbot',
-            instructions=f"IEP Chatbot that answers parents' questions in {self.language} regarding their child's Individualized Education Plan and Program specific to San Francisco's Educational Rules and Guidelines.",
+            instructions=f'{instructions} Please Return All Answers In {self.language}.',
             tools=[{'type': 'retrieval'}],
             model='gpt-4-1106-preview',
             file_ids=self.files)
         self.assistant_id = assistant.id # Need Validation
+        self.hasBuilt = True
         return assistant.id
     
     def add_message(self, message: str) -> str:

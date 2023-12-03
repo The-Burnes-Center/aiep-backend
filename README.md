@@ -25,29 +25,48 @@ Websocket Endpoint: wss://iep-backend-2422fe6f9d4d.herokuapp.com/ws
 
 ### Configuring Translation and Chatbot Language
 ```
-request msg: {type: "language", data: str}
+Request: 
+{type: "language_configuration", "language": str}
+
+Response:
+{type: "language_configuration", "status": "complete"}
 ```
-After sending the above message, the backend will configure the chatbot and translation functionalities to use the provided string as the target language
+After sending the above message, the backend server will configure the chatbot and translation functionalities to use the provided string as the target language. A response will be returned indicating the status as complete.
 
 ### Uploading a File:
 ```
-request: file binary data // ws.send(event.target.result)*;
-response msg: {"type": "file_id", "message": str}
-response msg: {"type": "prompts", "message": list[str]}
+Request:
+file binary data // ws.send(event.target.result)*;
+or
+{"type": "file_retreival", "file_id": str}
+
+Responses: 
+{"type": "file_id", "value": str}
+{"type": "generated_prompts", "content": list[str]}
+{"type": "file_translation", "page_number": int, "content": str}
+...
 ```
-After sending file binary byte data to the backend server,the server will generate top 5 l2/l3 prompts using the configured OpenAI Assistants object.
+After sending file binary byte data to the backend server,the server will perform the following tasks (in order):
+
+1. Upload the file to the OpenAI API File Storage. A response will be returned containing the file id string.
+2. Generate the top 5 l2/l3 prompts based on the uploaded file using the configured OpenAI Assistants object. A response will be returned containing a list of strings representing the prompts.
+3. Transcribe & Translate the file page by page using PYPDF's Fitz Library and ChatGPT's Chat Completion (model-3.5-1106). Responses will be returned containing the html string of each translated page in order.
+
+Alternatively, clients can send a request referrencing the file_id of an existing uploaded file. Instead of uploading a file, the backend server will attempt to retreive the file using the file_id. The file is then downloaded for native transcription and translation. Responses are identical. 
 
 *The read-only target property of the Event interface is a reference to the object onto which the event was dispatched. It is different from Event.currentTarget when the event handler is called during the bubbling or capturing phase of the event.
 
-### Requesting Translation
-```
-request msg: { type: "translation" }
-response msg: {"type": "translation", "page": int, "message": str}
-```
-
 ### Sending a Message to the Chatbot
 ```
-request msg: {type: "message", data: str }
-response msg: {type: "response", message: str }
+Request:
+{type: "chat_completion", "content": str}
+
+Response:
+{type: "chat_completion", "content": str}
 ```
 After sending a message to the chatbot, the backend server will return a generated message using the configured OpenAI Assistants object with the uploaded file attached. This is an asynchonous action
+
+### Error Handling
+```
+{"error": str}
+```
