@@ -42,6 +42,10 @@ class Chatbot:
         self.assistant = GPTAssistant(self.client)
         self.language_config = None
         self.assistant.add_file(SF_HANDBOOK_FILE_ID)
+        
+    def _generate_language_config_str(self):
+        self._validate_language_config()
+        return f'Please return your response in {self.language_config}'
 
     def _validate_language_config(self):
         if not self.language_config:
@@ -54,7 +58,7 @@ class Chatbot:
                 raise Exception("Couldn't find 5 prompts")
             return matches
         print('Got Response')
-        self.assistant.add_message(L2_PROMPT_MSG)
+        self.assistant.add_message(L2_PROMPT_MSG+self._generate_language_config_str())
         self.assistant.run()
         while not self.assistant.has_finished():
             print('Retrieving Data...')
