@@ -58,7 +58,8 @@ async def websocket_endpoint(websocket: WebSocket):
                     else:
                         raise Exception('Invalid Text Message')
             except Exception as e:
-                print(f"Error: {e}")
+                print(f"Error Message: {e}")
+                break
     except WebSocketDisconnect:
         print("Client disconnected")
     except Exception as e:
