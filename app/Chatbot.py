@@ -96,7 +96,7 @@ class Chatbot:
             page = doc[page_number]
             text = page.get_text()
             print('Text Retreived')
-            cc1 = GPTChatCompletion(self.client, self.language_config, True)
+            cc1 = GPTChatCompletion(self.client, self.language_config, False)
             cc1.add_message(GPTRole.USER, 'Please translate the text to ' + self.language_config + '.Text: ' + text)
             text2 = cc1.get_completion()
             chat_completion = GPTChatCompletion(self.client, self.language_config, False)
