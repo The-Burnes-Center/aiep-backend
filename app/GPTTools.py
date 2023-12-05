@@ -64,7 +64,7 @@ class GPTAssistant:
             name='IEP Chatbot',
             instructions=f'{instructions}. {TRANSLATION_PROMPT} {self.language}.',
             tools=[{'type': 'retrieval'}],
-            model='gpt-3.5-1106-preview',
+            model='gpt-3.5-turbo',
             file_ids=['file-gj95bmlJ6MLyVuSpmLTuKqk7','file-bAwpO3ReXjacOTjJhYgXcHus'])
         print('C')
         self.assistant_id = assistant.id  # Need Validation
