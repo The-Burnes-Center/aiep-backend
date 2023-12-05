@@ -65,7 +65,7 @@ class GPTAssistant:
             instructions=f'{instructions}. {TRANSLATION_PROMPT} {self.language}.',
             tools=[{'type': 'retrieval'}],
             model='gpt-4-1106-preview',
-            file_ids=self.files)
+            file_ids=['file-gj95bmlJ6MLyVuSpmLTuKqk7','file-bAwpO3ReXjacOTjJhYgXcHus'])
         print('C')
         self.assistant_id = assistant.id  # Need Validation
         self.hasBuilt = True

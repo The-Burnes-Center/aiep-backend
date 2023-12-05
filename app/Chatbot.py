@@ -132,8 +132,7 @@ class Chatbot:
 
     async def generate_prompts(self, ws: WebSocket):
         self._validate_language_config()
-        questions = self._generate_l2_prompts(
-        ) if self.assistant.hasBuilt else DEFAULT_PROMPTS
+        questions = self._generate_l2_prompts() if self.assistant.hasBuilt else DEFAULT_PROMPTS
         print('Prompts Calculated')
         await ws.send_text(json.dumps({"type": "generated_prompts", "content": questions}))
         print(questions)
