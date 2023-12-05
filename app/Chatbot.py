@@ -7,7 +7,7 @@ import io, json, re, fitz
 CHAR_LIMIT = 1500
 CHAR_LIMIT_MESSAGE = f'Limit your response to {CHAR_LIMIT} characters.'
 SF_HANDBOOK_FILE_ID = 'file-gj95bmlJ6MLyVuSpmLTuKqk7'
-L2_PROMPT_MSG = "What are five questions to ask ChatGPT specifically about my child's IEP? Provide questions that would give concise, easily understandable answers that are most pressing to the topic. Respond in English with each question on a new line."
+L2_PROMPT_MSG = "What are five questions to ask ChatGPT specifically about my child's IEP? Provide questions that would give concise, easily understandable answers that are most pressing to the topic. Respond with each question on a new line."
 L3_PROMPT_MSG_ASST = "Summarize 5 of the most pressing issues in the child's IEP in no more than 200 words. Give a block of text and nothing more."
 L3_PROMPT_MS_SYS = "You are given a summary of a child's performance from an IEP. You give the most pressing questions about the IEP whose answers cannot be found in the summary in JSON Format labelled by 'question 1', 'question 2' etc respectively."
 TRANSLATION_PROMPT_SYS = "You are a helpful assistant designed to display .txt files in an aesthetically pleasing way."

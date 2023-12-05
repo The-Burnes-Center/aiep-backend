@@ -44,7 +44,7 @@ class GPTAssistant:
         self.assistant = None
         self.thread = None
         self.files = []
-        self.language = None
+        self.language = 'Espanol'
         self.hasBuilt = False
 
     def config_language(self, language: str):
