@@ -4,7 +4,7 @@ from json import loads
 from re import sub
 from enum import Enum
 
-TRANSLATION_PROMPT = 'Please return the answer in'
+TRANSLATION_PROMPT = 'Must return the answer in'
 
 def create_client(api_key=str) -> OpenAI:
     try:
@@ -44,7 +44,7 @@ class GPTAssistant:
         self.assistant = None
         self.thread = None
         self.files = []
-        self.language = 'Espanol'
+        self.language = 'Spanish'
         self.hasBuilt = False
 
     def config_language(self, language: str):
