@@ -4,7 +4,7 @@ from json import loads
 from re import sub
 from enum import Enum
 
-TRANSLATION_PROMPT = 'Please Translate All Text (If there exists html only translate the text) in the Response to In Basic Level'
+TRANSLATION_PROMPT = 'Please Return the Response in'
 
 def create_client(api_key=str) -> OpenAI:
     try:
@@ -24,10 +24,9 @@ class GPTChatCompletion:
         self.messages = []
         self.client = client
         self.isResponseJson = isResponseJson
-        self.add_message(GPTRole.SYSTEM, f'{TRANSLATION_PROMPT} {language}')
 
     def add_message(self, role: GPTRole, msg: str):
-        self.messages.append({'role': role.value, 'content': msg})
+        self.messages.append({'role': role.value, 'content': msg if role != GPTRole.USER else msg + TRANSLATION_PROMPT})
 
     def get_completion(self):
         response_type = 'json_object' if self.isResponseJson else 'text'
@@ -61,7 +60,7 @@ class GPTAssistant:
     def build(self, instructions: str) -> str:
         assistant = self.client.beta.assistants.create(
             name='IEP Chatbot',
-            instructions=f'{instructions} {TRANSLATION_PROMPT} {self.language}',
+            instructions=f'{instructions}. {TRANSLATION_PROMPT} {self.language}',
             tools=[{'type': 'retrieval'}],
             model='gpt-4-1106-preview',
             file_ids=self.files)
