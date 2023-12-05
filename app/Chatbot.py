@@ -4,6 +4,7 @@ from time import sleep
 from typing import List
 import io, json, re, fitz
 
+TRANSLATION_PROMPT = 'Must return the answer in'
 CHAR_LIMIT = 1500
 CHAR_LIMIT_MESSAGE = f'Limit your response to {CHAR_LIMIT} characters.'
 SF_HANDBOOK_FILE_ID = 'file-gj95bmlJ6MLyVuSpmLTuKqk7'
@@ -96,7 +97,7 @@ class Chatbot:
             text = page.get_text()
             print('Text Retreived')
             chat_completion = GPTChatCompletion(self.client, self.language_config, False)
-            chat_completion.add_message(GPTRole.SYSTEM, TRANSLATION_PROMPT_SYS)
+            chat_completion.add_message(GPTRole.SYSTEM, TRANSLATION_PROMPT_SYS + '. ' + TRANSLATION_PROMPT + ' ' + self.language_config)
             chat_completion.add_message(GPTRole.USER, f"{TRANSLATION_PROMPT_USR} Here is the string of text: {text}")
             translated_text_response = chat_completion.get_completion()
             translated_text_html = extract_html(translated_text_response)
@@ -117,7 +118,6 @@ class Chatbot:
     async def upload_file(self, ws: WebSocket, file_data: io.BytesIO):
         print('Uploading File')
         self._validate_language_config()
-        print('A')
         iep_id = self.assistant.upload_file(file_data)
         self.assistant.add_file(iep_id)
         print("Configuring IEP")
