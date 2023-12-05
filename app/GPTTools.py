@@ -4,8 +4,6 @@ from json import loads
 from re import sub
 from enum import Enum
 
-TRANSLATION_PROMPT = 'Must return the answer in'
-
 def create_client(api_key=str) -> OpenAI:
     try:
         return OpenAI(api_key=api_key)
@@ -24,7 +22,7 @@ class GPTChatCompletion:
         self.messages = []
         self.client = client
         self.isResponseJson = isResponseJson
-        self.add_message(GPTRole.SYSTEM, f'{TRANSLATION_PROMPT} {language}')
+        self.add_message(GPTRole.SYSTEM, f'Please return the response in {language}')
 
     def add_message(self, role: GPTRole, msg: str):
         self.messages.append({'role': role.value, 'content': msg})
@@ -59,17 +57,14 @@ class GPTAssistant:
         return file.id
 
     def build(self, instructions: str) -> str:
-        print(self.language)
         assistant = self.client.beta.assistants.create(
             name='IEP Chatbot',
-            instructions=f'{instructions}. {TRANSLATION_PROMPT} {self.language}.',
+            instructions=f'{instructions}. Please return the response in {self.language}',
             tools=[{'type': 'retrieval'}],
-            model='gpt-3.5-turbo',
-            file_ids=['file-gj95bmlJ6MLyVuSpmLTuKqk7','file-bAwpO3ReXjacOTjJhYgXcHus'])
-        print('C')
+            model='gpt-4-1106-preview',
+            file_ids=self.files)
         self.assistant_id = assistant.id  # Need Validation
         self.hasBuilt = True
-        print('B')
         return assistant.id
 
     def add_message(self, message: str) -> str:
@@ -87,7 +82,7 @@ class GPTAssistant:
         run = self.client.beta.threads.runs.create(
             thread_id=self.thread_id,
             assistant_id=self.assistant_id,
-            instructions=f'{TRANSLATION_PROMPT} {self.language}')
+            instructions=f'Please return the response in {self.language}')
         self.run_id = run.id  # Need Validation
         return run.id
 
