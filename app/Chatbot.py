@@ -97,7 +97,7 @@ class Chatbot:
             text = page.get_text()
             print('Text Retreived')
             chat_completion = GPTChatCompletion(self.client, self.language_config, False)
-            chat_completion.add_message(GPTRole.SYSTEM, TRANSLATION_PROMPT_SYS + '. ' + TRANSLATION_PROMPT + ' ' + self.language_config)
+            chat_completion.add_message(GPTRole.SYSTEM, TRANSLATION_PROMPT_SYS + '. Please Translate into Spanish.')
             chat_completion.add_message(GPTRole.USER, f"{TRANSLATION_PROMPT_USR} Here is the string of text: {text}")
             translated_text_response = chat_completion.get_completion()
             translated_text_html = extract_html(translated_text_response)
