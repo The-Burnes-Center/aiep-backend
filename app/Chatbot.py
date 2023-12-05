@@ -2,10 +2,7 @@ from fastapi import WebSocket
 from app.GPTTools import create_client, GPTRole, GPTChatCompletion, GPTAssistant
 from time import sleep
 from typing import List
-import io
-import json
-import re
-import fitz
+import io, json, re, fitz
 
 CHAR_LIMIT = 1500
 CHAR_LIMIT_MESSAGE = 'Limit your response to {CHAR_LIMIT} characters.'
@@ -43,13 +40,13 @@ class Chatbot:
         self.language_config = None
         self.assistant.add_file(SF_HANDBOOK_FILE_ID)
         
-    def _generate_language_config_str(self):
-        self._validate_language_config()
-        return f'Please return your response in {self.language_config}'
-
     def _validate_language_config(self):
         if not self.language_config:
             raise Exception('Chatbot Language Not Configured')
+    
+    def _validate_assistant_build_status(self):
+        if not self.assistant.language:
+            self.assistant.build(CHATBOT_ASST_INSTRUCTIONS_EMPTY)
 
     def _generate_l2_prompts(self):
         def extract_ordered_list(text) -> List[str]:
@@ -57,8 +54,8 @@ class Chatbot:
             if len(matches) != 5:
                 raise Exception("Couldn't find 5 prompts")
             return matches
-        print('Got Response')
-        self.assistant.add_message(L2_PROMPT_MSG+self._generate_language_config_str())
+        self._validate_assistant_build_status()
+        self.assistant.add_message(L2_PROMPT_MSG)
         self.assistant.run()
         while not self.assistant.has_finished():
             print('Retrieving Data...')
@@ -67,6 +64,7 @@ class Chatbot:
         return extract_ordered_list(response)
 
     def _generate_l3_prompts(self):
+        self._validate_assistant_build_status()
         self.assistant.add_message(L3_PROMPT_MSG_ASST)
         self.assistant.run()
         while not self.assistant.has_finished():
@@ -74,17 +72,18 @@ class Chatbot:
             sleep(4)
         res = self.assistant.get_latest_message()
         chat_completion = GPTChatCompletion(
-            self.client, True, self.language_config)
+            self.client, self.language_config, True)
         chat_completion.add_message(GPTRole.SYSTEM, L3_PROMPT_MS_SYS)
         chat_completion.add_message(GPTRole.USER, 'Summary: ' + res)
         return chat_completion.get_completion()
 
     async def configure_language(self, ws: WebSocket, language_config: str):
         self.language_config = language_config
+        self.assistant.config_language(language_config)
         print('Language Configured')
         await ws.send_text(json.dumps({"type": "language_configuration", "status": "complete"}))
 
-    async def _generate_translation(self, ws: WebSocket, file_data):
+    async def _generate_translation(self, ws: WebSocket, file_data: io.BytesIO):
         def extract_html(input_string: str) -> str:
             print(input_string)
             match = re.search(r"```html(.*?)```", input_string, re.DOTALL)
@@ -96,11 +95,9 @@ class Chatbot:
             page = doc[page_number]
             text = page.get_text()
             print('Text Retreived')
-            chat_completion = GPTChatCompletion(
-                self.client, False, self.language_config)
+            chat_completion = GPTChatCompletion(self.client, self.language_config, False)
             chat_completion.add_message(GPTRole.SYSTEM, TRANSLATION_PROMPT_SYS)
-            chat_completion.add_message(
-                GPTRole.USER, f"{TRANSLATION_PROMPT_USR} Here is the string of text: {text}")
+            chat_completion.add_message(GPTRole.USER, f"{TRANSLATION_PROMPT_USR} Here is the string of text: {text}")
             translated_text_response = chat_completion.get_completion()
             translated_text_html = extract_html(translated_text_response)
             print('Response Received')
@@ -118,9 +115,10 @@ class Chatbot:
         await self._generate_translation(ws, io.BytesIO(image_data_bytes))
 
     async def upload_file(self, ws: WebSocket, file_data: io.BytesIO):
+        print('Uploading File')
         self._validate_language_config()
-        iep_data = io.BufferedReader(file_data)
-        iep_id = self.assistant.upload_file(iep_data)
+        print('A')
+        iep_id = self.assistant.upload_file(file_data)
         self.assistant.add_file(iep_id)
         print("Configuring IEP")
         await ws.send_text(json.dumps({"type": "file_id", "value": iep_id}))

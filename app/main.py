@@ -2,10 +2,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from app.Chatbot import Chatbot
 from starlette.websockets import WebSocketState
-import io
-import json
-import os
-import asyncio
+import io,traceback,json,os,asyncio
 
 app = FastAPI()
 
@@ -41,7 +38,7 @@ async def websocket_endpoint(websocket: WebSocket):
                     print('Byte Data Received')
                     file_data = io.BytesIO(websocket_message["bytes"])
                     await chatbot.upload_file(websocket, file_data)
-                    file_data.close()  # Close the stream after using it
+                    file_data.close()
                 elif "text" in websocket_message:
                     message_data = json.loads(websocket_message["text"])
                     print(message_data)
@@ -58,7 +55,7 @@ async def websocket_endpoint(websocket: WebSocket):
                     else:
                         raise Exception('Invalid Text Message')
             except Exception as e:
-                print(f"Error Message: {e}")
+                print(f"Error Message: {e}\nYraceback: {traceback.print_exc()}")
                 break
     except WebSocketDisconnect:
         print("Client disconnected")
