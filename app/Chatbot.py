@@ -107,7 +107,7 @@ class Chatbot:
             print('Response Received')
             await ws.send_text(json.dumps({"type": "file_translation", "page_number": page_number + 1, "content": translated_text_html}))
         print('Translation Sent')
-
+#dsfa
     async def add_file(self, ws: WebSocket, file_id: str):
         self._validate_language_config()
         self.assistant.add_file(file_id)
