@@ -112,7 +112,7 @@ class Chatbot:
         self._validate_language_config()
         self.assistant.add_file(file_id)
         print("Configuring IEP")
-        await ws.send_text(json.dumps({"type": "file_id", "value": 'file-bAwpO3ReXjacOTjJhYgXcHus'}))
+        await ws.send_text(json.dumps({"type": "file_id", "value": file_id}))
         self.assistant.build(CHATBOT_ASST_INSTRUCTIONS_ATT)
         print('File Data Configured for chatbot')
         image_data_bytes = self.client.files.retrieve_content(file_id)

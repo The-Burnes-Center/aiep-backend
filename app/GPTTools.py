@@ -59,14 +59,17 @@ class GPTAssistant:
         return file.id
 
     def build(self, instructions: str) -> str:
+        print('A')
         assistant = self.client.beta.assistants.create(
             name='IEP Chatbot',
-            instructions=f'{instructions}. {TRANSLATION_PROMPT} {self.language}',
+            instructions=f'{instructions}. {TRANSLATION_PROMPT} {self.language}.',
             tools=[{'type': 'retrieval'}],
             model='gpt-4-1106-preview',
             file_ids=self.files)
+        print('C')
         self.assistant_id = assistant.id  # Need Validation
         self.hasBuilt = True
+        print('B')
         return assistant.id
 
     def add_message(self, message: str) -> str:
