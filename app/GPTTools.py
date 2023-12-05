@@ -4,7 +4,7 @@ from json import loads
 from re import sub
 from enum import Enum
 
-TRANSLATION_PROMPT = 'Please Return the Response in'
+TRANSLATION_PROMPT = 'Please give the answer translated to'
 
 def create_client(api_key=str) -> OpenAI:
     try:
@@ -27,7 +27,7 @@ class GPTChatCompletion:
         self.language = language
 
     def add_message(self, role: GPTRole, msg: str):
-        self.messages.append({'role': role.value, 'content': msg if role != GPTRole.USER else f'{msg} {TRANSLATION_PROMPT} {self.language}'})
+        self.messages.append({'role': role.value, 'content': msg if role != GPTRole.USER else f'{msg}. {TRANSLATION_PROMPT} {self.language}'})
 
     def get_completion(self):
         response_type = 'json_object' if self.isResponseJson else 'text'
@@ -84,7 +84,7 @@ class GPTAssistant:
         run = self.client.beta.threads.runs.create(
             thread_id=self.thread_id,
             assistant_id=self.assistant_id,
-            instructions='Please respond to the user with basic words in English.')
+            instructions=f'{TRANSLATION_PROMPT} {self.language}')
         self.run_id = run.id  # Need Validation
         return run.id
 
