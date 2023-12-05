@@ -59,7 +59,7 @@ class GPTAssistant:
         return file.id
 
     def build(self, instructions: str) -> str:
-        print('A')
+        print(self.language)
         assistant = self.client.beta.assistants.create(
             name='IEP Chatbot',
             instructions=f'{instructions}. {TRANSLATION_PROMPT} {self.language}.',
