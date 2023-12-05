@@ -24,9 +24,10 @@ class GPTChatCompletion:
         self.messages = []
         self.client = client
         self.isResponseJson = isResponseJson
+        self.language = language
 
     def add_message(self, role: GPTRole, msg: str):
-        self.messages.append({'role': role.value, 'content': msg if role != GPTRole.USER else msg + TRANSLATION_PROMPT})
+        self.messages.append({'role': role.value, 'content': msg if role != GPTRole.USER else f'{msg} {TRANSLATION_PROMPT} {self.language}'})
 
     def get_completion(self):
         response_type = 'json_object' if self.isResponseJson else 'text'
