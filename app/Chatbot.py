@@ -12,7 +12,7 @@ L2_PROMPT_MSG = "What are five questions to ask ChatGPT specifically about my ch
 L3_PROMPT_MSG_ASST = "Summarize 5 of the most pressing issues in the child's IEP in no more than 200 words. Give a block of text and nothing more."
 L3_PROMPT_MS_SYS = "You are given a summary of a child's performance from an IEP. You give the most pressing questions about the IEP whose answers cannot be found in the summary in JSON Format labelled by 'question 1', 'question 2' etc respectively."
 TRANSLATION_PROMPT_SYS = "You are a helpful assistant designed to display .txt files in an aesthetically pleasing way."
-TRANSLATION_PROMPT_USR = "Take this string of text and clean it up into an HTML file that is legible. The original document includes checkboxes and redacted information. Only output HTML code."
+TRANSLATION_PROMPT_USR = "Take this string of text and clean it up into an HTML file that is legible. The original document includes checkboxes and redacted information. Must output HTML code."
 CHATBOT_ASST_INSTRUCTIONS_ATT = "IEP Chatbot that answers parents' questions regarding their child's Individualized Education Plan (Document Attached) according to San Francisco's Educational Rules and Guidelines (Handbook Attached)." + CHAR_LIMIT_MESSAGE
 CHATBOT_ASST_INSTRUCTIONS_EMPTY = "IEP Chatbot that answers parents' questions regarding their child's Individualized Education Plan and Process specific to San Francisco's Educational Rules and Guidelines (Handbook Attached)." + \
     CHAR_LIMIT_MESSAGE
@@ -97,18 +97,18 @@ class Chatbot:
             page = doc[page_number]
             text = page.get_text()
             print('Text Retreived')
-            cc1 = GPTChatCompletion(self.client, self.language_config, False)
-            cc1.add_message(GPTRole.USER, 'Text: ' + text + '. Please translate the text to ' + self.language_config + '.')
-            text2 = cc1.get_completion()
+            cc = GPTChatCompletion(self.client, self.language_config, False)
+            cc.add_message(GPTRole.USER, 'Text: ' + text + '. Please translate the text to ' + self.language_config + '.')
+            translated_text = cc.get_completion()
             chat_completion = GPTChatCompletion(self.client, self.language_config, False)
             chat_completion.add_message(GPTRole.SYSTEM, TRANSLATION_PROMPT_SYS)
-            chat_completion.add_message(GPTRole.USER, f"{TRANSLATION_PROMPT_USR} Here is the string of text: {text2}.")
+            chat_completion.add_message(GPTRole.USER, f"{TRANSLATION_PROMPT_USR} Here is the string of text: {translated_text}.")
             translated_text_response = chat_completion.get_completion()
             translated_text_html = extract_html(translated_text_response)
             print('Response Received')
             await ws.send_text(json.dumps({"type": "file_translation", "page_number": page_number + 1, "content": translated_text_html}))
         print('Translation Sent')
-#dsfa
+
     async def add_file(self, ws: WebSocket, file_id: str):
         self._validate_language_config()
         self.assistant.add_file(file_id)
