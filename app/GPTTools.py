@@ -63,6 +63,7 @@ class GPTAssistant:
             tools=[{'type': 'retrieval'}],
             model='gpt-4-1106-preview',
             file_ids=self.files)
+        print('A')
         self.assistant_id = assistant.id  # Need Validation
         self.hasBuilt = True
         return assistant.id
