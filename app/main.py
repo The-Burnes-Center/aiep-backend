@@ -38,7 +38,6 @@ async def websocket_endpoint(websocket: WebSocket):
                     print('Byte Data Received')
                     file_data = io.BytesIO(websocket_message["bytes"])
                     await chatbot.upload_file(websocket, file_data)
-                    file_data.close()
                 elif "text" in websocket_message:
                     message_data = json.loads(websocket_message["text"])
                     print(message_data)
