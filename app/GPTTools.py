@@ -39,8 +39,7 @@ class GPTChatCompletion:
 class GPTAssistant:
     def __init__(self, client: OpenAI) -> None:
         self.client = client
-        self.assistant = None
-        self.thread = None
+        self.assistant, self.thread = None, None
         self.files = []
         self.language = 'Spanish'
         self.hasBuilt = False
@@ -57,12 +56,13 @@ class GPTAssistant:
         return file.id
 
     def build(self, instructions: str) -> str:
+        print(self.files)
         assistant = self.client.beta.assistants.create(
             name='IEP Chatbot',
             instructions=f'{instructions}. Please return the response in {self.language}',
             tools=[{'type': 'retrieval'}],
             model='gpt-4-1106-preview',
-            file_ids=[])
+            file_ids=self.files)
         self.assistant_id = assistant.id  # Need Validation
         self.hasBuilt = True
         return assistant.id
