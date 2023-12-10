@@ -62,7 +62,7 @@ class GPTAssistant:
             instructions=f'{instructions}. Please return the response in {self.language}',
             tools=[{'type': 'retrieval'}],
             model='gpt-4-1106-preview',
-            file_ids=['file-gj95bmlJ6MLyVuSpmLTuKqk7'])
+            file_ids=[])
         print('A')
         self.assistant_id = assistant.id  # Need Validation
         self.hasBuilt = True
