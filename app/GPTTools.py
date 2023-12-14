@@ -27,9 +27,9 @@ class GPTChatCompletion:
     def add_message(self, role: GPTRole, msg: str):
         self.messages.append({'role': role.value, 'content': msg})
 
-    def get_completion(self):
+    async def get_completion(self):
         response_type = 'json_object' if self.isResponseJson else 'text'
-        response = self.client.chat.completions.create(
+        response = await self.client.chat.completions.create(
             model='gpt-3.5-turbo-1106',
             response_format={'type': response_type},
             messages=self.messages)
