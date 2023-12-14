@@ -1,7 +1,9 @@
 from fastapi import WebSocket
 from app.GPTTools import create_client, GPTRole, GPTChatCompletion, GPTAssistant
 from time import sleep
-from typing import List
+from typing import List, Dict
+from starlette.websockets import WebSocketState
+import io,traceback
 import io, json, re, fitz
 
 TRANSLATION_PROMPT = 'Must return the answer in'
@@ -33,7 +35,49 @@ DEFAULT_PROMPTS = ["Can you summarize the first page of my IEP document?",
                    "Can family members attend the IEP meeting?",
                    "What are SMART goals in an IEP, and why are they important?"]
 
+class ConnectionManager:
+    def __init__(self, api_key: str):
+        self.api_key = api_key
+        self.active_connections: List[WebSocket] = []
+        self.connection_to_chatbot: Dict[WebSocket, Chatbot] = {}
 
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
+        self.connection_to_chatbot[websocket] = Chatbot(self.api_key)
+
+    def disconnect(self, websocket: WebSocket):
+        self.active_connections.remove(websocket)
+        self.connection_to_chatbot.pop(websocket, None)
+
+    async def handle_messages(self, message: str, websocket: WebSocket):
+        try:
+            if websocket not in self.connection_to_chatbot: raise Exception('Websocket Not Found')
+            chatbot = self.connection_to_chatbot[websocket]
+            if "bytes" in message:
+                print('Byte Data Received')
+                file_data = io.BytesIO(message["bytes"])
+                await chatbot.upload_file(websocket, file_data)
+            elif "text" in message:
+                message_data = json.loads(message["text"])
+                print(message_data)
+                message_type = message_data["type"]
+                if message_type == 'pong':
+                    print("Pong Received")
+                elif message_type == 'file_retreival':
+                    await chatbot.add_file(websocket, message_data["file_id"])
+                elif message_type == 'language_configuration':
+                    print("Language Configuration Request Received")
+                    await chatbot.configure_language(websocket, message_data["language"])
+                elif message_type == 'chat_completion':
+                    await chatbot.generate_response(websocket, message_data["content"])
+                else:
+                    raise Exception('Invalid Text Message')
+        except Exception as e:
+            print(f"Error Message: {e}\nYraceback: {traceback.print_exc()}")
+            if websocket.application_state == WebSocketState.CONNECTED:
+                await websocket.send_text(json.dumps({'type': 'error', 'message': str(e)}))
+                
 class Chatbot:
     def __init__(self, api_key=str) -> None:
         self.client = create_client(api_key)
