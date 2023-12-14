@@ -65,11 +65,13 @@ class ConnectionManager:
                 if message_type == 'pong':
                     print("Pong Received")
                 elif message_type == 'file_retreival':
+                    print("File Retreival Request Received")
                     asyncio.ensure_future(chatbot.add_file(websocket, message_data["file_id"]))
                 elif message_type == 'language_configuration':
                     print("Language Configuration Request Received")
                     asyncio.ensure_future(chatbot.configure_language(websocket, message_data["language"]))
                 elif message_type == 'chat_completion':
+                    print("Chat Completion Request Received")
                     asyncio.ensure_future(chatbot.generate_response(websocket, message_data["content"]))
                 else:
                     raise Exception('Invalid Text Message')
@@ -154,6 +156,7 @@ class Chatbot:
         print('Translation Sent')
 
     async def add_file(self, ws: WebSocket, file_id: str):
+        print('Add File')
         self._validate_language_config()
         self.assistant.add_file(file_id)
         print("Configuring IEP")
