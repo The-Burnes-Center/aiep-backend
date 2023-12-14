@@ -76,7 +76,7 @@ class ConnectionManager:
         except Exception as e:
             print(f"Error Message: {e}\nYraceback: {traceback.print_exc()}")
             if websocket.application_state == WebSocketState.CONNECTED:
-                await websocket.send_text(json.dumps({'type': 'error', 'message': str(e)}))
+                asyncio.ensure_future(websocket.send_text(json.dumps({'type': 'error', 'message': str(e)})))
 
 class Chatbot:
     def __init__(self, api_key=str) -> None:
