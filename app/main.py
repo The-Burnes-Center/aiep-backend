@@ -31,7 +31,8 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             message = await websocket.receive()
-            await manager.handle_messages(message, websocket)
+            print('Message Received')
+            asyncio.ensure_future(manager.handle_messages(message, websocket))
     except Exception as e:
         print(f'Error occured: {str(e)}')
     finally:
