@@ -18,7 +18,7 @@ class GPTRole(Enum):
 
 
 class GPTChatCompletion:
-    def __init__(self, client: OpenAI, language: str, isResponseJson: bool = False) -> None:
+    def __init__(self, client: AsyncOpenAI, language: str, isResponseJson: bool = False) -> None:
         self.messages = []
         self.client = client
         self.isResponseJson = isResponseJson
@@ -37,7 +37,7 @@ class GPTChatCompletion:
 
 
 class GPTAssistant:
-    def __init__(self, client: OpenAI) -> None:
+    def __init__(self, client: AsyncOpenAI) -> None:
         self.client = client
         self.assistant, self.thread = None, None
         self.files = []
