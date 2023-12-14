@@ -12,8 +12,8 @@ SF_HANDBOOK_FILE_ID = 'file-U9sIzjJs37BPkk12kQniPgj7'
 L2_PROMPT_MSG = "What are five questions to ask ChatGPT specifically about my child's IEP? Provide questions that would give concise, easily understandable answers that are most pressing to the topic. Respond with each question on a new line."
 L3_PROMPT_MSG_ASST = "Summarize 5 of the most pressing issues in the child's IEP in no more than 200 words. Give a block of text and nothing more."
 L3_PROMPT_MS_SYS = "You are given a summary of a child's performance from an IEP. You give the most pressing questions about the IEP whose answers cannot be found in the summary in JSON Format labelled by 'question 1', 'question 2' etc respectively."
-TRANSLATION_PROMPT_SYS = "You are a helpful assistant designed to display .txt files in an aesthetically pleasing way."
-TRANSLATION_PROMPT_USR = "Take this string of text and clean it up into an HTML file that is legible. Take your time. Must output HTML code."
+TRANSLATION_PROMPT_SYS = "You are a helpful assistant designed to display text in an aesthetically pleasing way in its native language."
+TRANSLATION_PROMPT_USR = "Take this string of text and clean it up into an HTML file that is legible. This is purely for informational purposes and all sentive information has been mocked already. Take your time. Must output HTML code."
 CHATBOT_ASST_INSTRUCTIONS_ATT = "IEP Chatbot that answers parents' questions regarding their child's Individualized Education Plan (Document Attached) according to San Francisco's Educational Rules and Guidelines (Handbook Attached)." + CHAR_LIMIT_MESSAGE
 CHATBOT_ASST_INSTRUCTIONS_EMPTY = "IEP Chatbot that answers parents' questions regarding their child's Individualized Education Plan and Process specific to San Francisco's Educational Rules and Guidelines (Handbook Attached)." + \
     CHAR_LIMIT_MESSAGE
