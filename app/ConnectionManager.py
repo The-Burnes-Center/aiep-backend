@@ -3,7 +3,7 @@ from app.GPTTools import create_client, GPTRole, GPTChatCompletion, GPTAssistant
 from time import sleep
 from typing import List, Dict
 from starlette.websockets import WebSocketState
-import io, json, re, fitz, asyncio, traceback
+import io, json, re, fitz, traceback
 
 TRANSLATION_PROMPT = 'Must return the answer in'
 CHAR_LIMIT = 1500
@@ -57,7 +57,7 @@ class ConnectionManager:
             if "bytes" in message:
                 print('Byte Data Received')
                 file_data = io.BytesIO(message["bytes"])
-                asyncio.ensure_future(chatbot.upload_file(websocket, file_data))
+                await chatbot.upload_file(websocket, file_data)
             elif "text" in message:
                 message_data = json.loads(message["text"])
                 print(message_data)
@@ -66,19 +66,19 @@ class ConnectionManager:
                     print("Pong Received")
                 elif message_type == 'file_retreival':
                     print("File Retreival Request Received")
-                    asyncio.ensure_future(chatbot.add_file(websocket, message_data["file_id"]))
+                    await chatbot.add_file(websocket, message_data["file_id"])
                 elif message_type == 'language_configuration':
                     print("Language Configuration Request Received")
-                    asyncio.ensure_future(chatbot.configure_language(websocket, message_data["language"]))
+                    await chatbot.configure_language(websocket, message_data["language"])
                 elif message_type == 'chat_completion':
                     print("Chat Completion Request Received")
-                    asyncio.ensure_future(chatbot.generate_response(websocket, message_data["content"]))
+                    await chatbot.generate_response(websocket, message_data["content"])
                 else:
                     raise Exception('Invalid Text Message')
         except Exception as e:
             print(f"Error Message: {e}\nYraceback: {traceback.print_exc()}")
             if websocket.application_state == WebSocketState.CONNECTED:
-                asyncio.ensure_future(websocket.send_text(json.dumps({'type': 'error', 'message': str(e)})))
+                await websocket.send_text(json.dumps({'type': 'error', 'message': str(e)}))
 
 class Chatbot:
     def __init__(self, api_key=str) -> None:
