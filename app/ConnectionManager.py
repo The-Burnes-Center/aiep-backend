@@ -49,6 +49,7 @@ class ConnectionManager:
     def disconnect(self, websocket: WebSocket):
         self.active_connections.remove(websocket)
         self.connection_to_chatbot.pop(websocket, None)
+        websocket.close()
 
     async def handle_messages(self, message: str, websocket: WebSocket):
         try:
@@ -77,7 +78,7 @@ class ConnectionManager:
             print(f"Error Message: {e}\nYraceback: {traceback.print_exc()}")
             if websocket.application_state == WebSocketState.CONNECTED:
                 await websocket.send_text(json.dumps({'type': 'error', 'message': str(e)}))
-                
+
 class Chatbot:
     def __init__(self, api_key=str) -> None:
         self.client = create_client(api_key)
