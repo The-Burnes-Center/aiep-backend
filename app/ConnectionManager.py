@@ -110,7 +110,7 @@ class Chatbot:
         response = self.assistant.get_latest_message()
         return extract_ordered_list(response)
 
-    def _generate_l3_prompts(self):
+    async def _generate_l3_prompts(self):
         self._validate_assistant_build_status()
         self.assistant.add_message(L3_PROMPT_MSG_ASST)
         self.assistant.run()
@@ -122,7 +122,7 @@ class Chatbot:
             self.client, self.language_config, True)
         chat_completion.add_message(GPTRole.SYSTEM, L3_PROMPT_MS_SYS)
         chat_completion.add_message(GPTRole.USER, 'Summary: ' + res)
-        return chat_completion.get_completion()
+        return await chat_completion.get_completion()
 
     async def configure_language(self, ws: WebSocket, language_config: str):
         self.language_config = language_config
@@ -146,11 +146,11 @@ class Chatbot:
             print('Text Retreived')
             cc = GPTChatCompletion(self.client, self.language_config, False)
             cc.add_message(GPTRole.USER, 'Text: ' + text + '. Please translate the text to ' + self.language_config + '.')
-            translated_text = cc.get_completion()
+            translated_text = await cc.get_completion()
             chat_completion = GPTChatCompletion(self.client, self.language_config, False)
             chat_completion.add_message(GPTRole.SYSTEM, TRANSLATION_PROMPT_SYS)
             chat_completion.add_message(GPTRole.USER, f"{TRANSLATION_PROMPT_USR} Here is the string of text: {translated_text}.")
-            translated_text_response = chat_completion.get_completion()
+            translated_text_response = await chat_completion.get_completion()
             translated_text_html = extract_html(translated_text_response)
             print('Response Received')
             await ws.send_text(json.dumps({"type": "file_translation", "page_number": page_number + 1, "content": translated_text_html}))
