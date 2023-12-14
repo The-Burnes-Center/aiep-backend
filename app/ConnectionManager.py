@@ -6,7 +6,7 @@ from starlette.websockets import WebSocketState
 import io, json, re, fitz, traceback
 
 TRANSLATION_PROMPT = 'Must return the answer in'
-CHAR_LIMIT = 1500
+CHAR_LIMIT = 1000
 CHAR_LIMIT_MESSAGE = f'Limit your response to {CHAR_LIMIT} characters.'
 SF_HANDBOOK_FILE_ID = 'file-U9sIzjJs37BPkk12kQniPgj7'
 L2_PROMPT_MSG = "What are five questions to ask ChatGPT specifically about my child's IEP? Provide questions that would give concise, easily understandable answers that are most pressing to the topic. Respond with each question on a new line."

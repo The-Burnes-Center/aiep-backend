@@ -1,5 +1,6 @@
 from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
+from websockets.exceptions import ConnectionClosedError
 from app.ConnectionManager import ConnectionManager
 import json, os, asyncio
 
@@ -34,6 +35,8 @@ async def websocket_endpoint(websocket: WebSocket):
             print('Message Received')
             asyncio.ensure_future(manager.handle_messages(message, websocket))
             print('Future Sent')
+    except ConnectionClosedError:
+        print("WebSocket connection closed unexpectedly.")
     except Exception as e:
         print(f'Error occured: {str(e)}')
     finally:
