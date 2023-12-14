@@ -3,8 +3,7 @@ from app.GPTTools import create_client, GPTRole, GPTChatCompletion, GPTAssistant
 from time import sleep
 from typing import List, Dict
 from starlette.websockets import WebSocketState
-import io,traceback
-import io, json, re, fitz
+import io, json, re, fitz, asyncio, traceback
 
 TRANSLATION_PROMPT = 'Must return the answer in'
 CHAR_LIMIT = 1500
@@ -58,7 +57,7 @@ class ConnectionManager:
             if "bytes" in message:
                 print('Byte Data Received')
                 file_data = io.BytesIO(message["bytes"])
-                await chatbot.upload_file(websocket, file_data)
+                asyncio.ensure_future(chatbot.upload_file(websocket, file_data))
             elif "text" in message:
                 message_data = json.loads(message["text"])
                 print(message_data)
@@ -66,12 +65,12 @@ class ConnectionManager:
                 if message_type == 'pong':
                     print("Pong Received")
                 elif message_type == 'file_retreival':
-                    await chatbot.add_file(websocket, message_data["file_id"])
+                    asyncio.ensure_future(chatbot.add_file(websocket, message_data["file_id"]))
                 elif message_type == 'language_configuration':
                     print("Language Configuration Request Received")
-                    await chatbot.configure_language(websocket, message_data["language"])
+                    asyncio.ensure_future(chatbot.configure_language(websocket, message_data["language"]))
                 elif message_type == 'chat_completion':
-                    await chatbot.generate_response(websocket, message_data["content"])
+                    asyncio.ensure_future(chatbot.generate_response(websocket, message_data["content"]))
                 else:
                     raise Exception('Invalid Text Message')
         except Exception as e:
