@@ -1,12 +1,12 @@
 from io import BytesIO, BufferedReader
-from openai import AsyncOpenAI
+from openai import OpenAI
 from json import loads
 from re import sub
 from enum import Enum
 
-def create_client(api_key=str) -> AsyncOpenAI:
+def create_client(api_key=str) -> OpenAI:
     try:
-        return AsyncOpenAI(api_key=api_key)
+        return OpenAI(api_key=api_key)
     except Exception as e:
         raise Exception(f'Cannot Configure Client, Invalid API Key: {e}')
 
@@ -18,7 +18,7 @@ class GPTRole(Enum):
 
 
 class GPTChatCompletion:
-    def __init__(self, client: AsyncOpenAI, language: str, isResponseJson: bool = False) -> None:
+    def __init__(self, client: OpenAI, language: str, isResponseJson: bool = False) -> None:
         self.messages = []
         self.client = client
         self.isResponseJson = isResponseJson
@@ -27,9 +27,9 @@ class GPTChatCompletion:
     def add_message(self, role: GPTRole, msg: str):
         self.messages.append({'role': role.value, 'content': msg})
 
-    async def get_completion(self):
+    def get_completion(self):
         response_type = 'json_object' if self.isResponseJson else 'text'
-        response = await self.client.chat.completions.create(
+        response = self.client.chat.completions.create(
             model='gpt-3.5-turbo-1106',
             response_format={'type': response_type},
             messages=self.messages)
@@ -37,7 +37,7 @@ class GPTChatCompletion:
 
 
 class GPTAssistant:
-    def __init__(self, client: AsyncOpenAI) -> None:
+    def __init__(self, client: OpenAI) -> None:
         self.client = client
         self.assistant, self.thread = None, None
         self.files = []
