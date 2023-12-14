@@ -1,12 +1,12 @@
 from io import BytesIO, BufferedReader
-from openai import OpenAI
+from openai import AsyncOpenAI
 from json import loads
 from re import sub
 from enum import Enum
 
-def create_client(api_key=str) -> OpenAI:
+def create_client(api_key=str) -> AsyncOpenAI:
     try:
-        return OpenAI(api_key=api_key)
+        return AsyncOpenAI(api_key=api_key)
     except Exception as e:
         raise Exception(f'Cannot Configure Client, Invalid API Key: {e}')
 

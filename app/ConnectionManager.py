@@ -45,10 +45,10 @@ class ConnectionManager:
         self.active_connections.append(websocket)
         self.connection_to_chatbot[websocket] = Chatbot(self.api_key)
 
-    def disconnect(self, websocket: WebSocket):
+    async def disconnect(self, websocket: WebSocket):
         self.active_connections.remove(websocket)
         self.connection_to_chatbot.pop(websocket, None)
-        websocket.close()
+        await websocket.close()
 
     async def handle_messages(self, message: str, websocket: WebSocket):
         try:
@@ -76,7 +76,7 @@ class ConnectionManager:
                 else:
                     raise Exception('Invalid Text Message')
         except Exception as e:
-            print(f"Error Message: {e}\nYraceback: {traceback.print_exc()}")
+            print(f"Error Message: {e}\nTraceback: {traceback.print_exc()}")
             if websocket.application_state == WebSocketState.CONNECTED:
                 await websocket.send_text(json.dumps({'type': 'error', 'message': str(e)}))
 
@@ -138,6 +138,7 @@ class Chatbot:
         print('Translation Request Received')
         doc = fitz.open(stream=file_data, filetype='pdf')
         file_data.close()
+        print('File Scanned')
         for page_number in range(doc.page_count):
             print(f'Translating Page {page_number + 1}')
             page = doc[page_number]

@@ -40,4 +40,4 @@ async def websocket_endpoint(websocket: WebSocket):
     except Exception as e:
         print(f'Error occured: {str(e)}')
     finally:
-        manager.disconnect(websocket)
+        asyncio.ensure_future(manager.disconnect(websocket))
