@@ -39,7 +39,7 @@ class Chatbot:
         self.client = create_client(api_key)
         self.assistant = GPTAssistant(self.client)
         self.language_config = None
-        self.assistant.add_file(SF_HANDBOOK_FILE_ID)
+        # self.assistant.add_file(SF_HANDBOOK_FILE_ID)
         
     def _validate_language_config(self):
         if not self.language_config:
