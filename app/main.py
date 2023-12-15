@@ -31,13 +31,17 @@ async def websocket_endpoint(websocket: WebSocket):
     print('Websocket Accepted')
     try:
         while True:
-            message = await websocket.receive()
-            print('Message Received')
-            asyncio.ensure_future(manager.handle_messages(message, websocket))
-            print('Future Sent')
+            try:
+                message = await websocket.receive()
+                print('Message Received')
+                await manager.handle_messages(message, websocket)
+                print('Future Sent')
+            except Exception as e:
+                print(str(e))
+                break
     except ConnectionClosedError:
         print("WebSocket connection closed unexpectedly.")
     except Exception as e:
         print(f'Error occured: {str(e)}')
-    finally:
-        asyncio.ensure_future(manager.disconnect(websocket))
+    #finally:
+        #await manager.disconnect(websocket)

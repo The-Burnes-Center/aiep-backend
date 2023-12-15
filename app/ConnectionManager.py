@@ -138,7 +138,6 @@ class Chatbot:
         print('Translation Request Received')
         doc = fitz.open(stream=file_data, filetype='pdf')
         file_data.close()
-        print('File Scanned')
         for page_number in range(doc.page_count):
             print(f'Translating Page {page_number + 1}')
             page = doc[page_number]
