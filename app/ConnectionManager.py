@@ -137,7 +137,6 @@ class Chatbot:
             return match.group(1) if match else input_string
         print('Translation Request Received')
         doc = fitz.open(stream=file_data, filetype='pdf')
-        file_data.close()
         for page_number in range(doc.page_count):
             print(f'Translating Page {page_number + 1}')
             page = doc[page_number]
