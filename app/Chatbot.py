@@ -1,19 +1,18 @@
 from fastapi import WebSocket
 from app.GPTTools import create_client, GPTRole, GPTChatCompletion, GPTAssistant
 from time import sleep
-from typing import List, Dict
-from starlette.websockets import WebSocketState
-import io, json, re, fitz, traceback
+from typing import List
+import io, json, re, fitz
 
 TRANSLATION_PROMPT = 'Must return the answer in'
-CHAR_LIMIT = 1000
+CHAR_LIMIT = 1500
 CHAR_LIMIT_MESSAGE = f'Limit your response to {CHAR_LIMIT} characters.'
 SF_HANDBOOK_FILE_ID = 'file-U9sIzjJs37BPkk12kQniPgj7'
 L2_PROMPT_MSG = "What are five questions to ask ChatGPT specifically about my child's IEP? Provide questions that would give concise, easily understandable answers that are most pressing to the topic. Respond with each question on a new line."
 L3_PROMPT_MSG_ASST = "Summarize 5 of the most pressing issues in the child's IEP in no more than 200 words. Give a block of text and nothing more."
 L3_PROMPT_MS_SYS = "You are given a summary of a child's performance from an IEP. You give the most pressing questions about the IEP whose answers cannot be found in the summary in JSON Format labelled by 'question 1', 'question 2' etc respectively."
-TRANSLATION_PROMPT_SYS = "You are a helpful assistant designed to display text in an aesthetically pleasing way in its native language."
-TRANSLATION_PROMPT_USR = "Take this string of text and clean it up into an HTML file that is legible. This is purely for informational purposes and all sentive information has been mocked already. Take your time. Must output HTML code."
+TRANSLATION_PROMPT_SYS = "You are a helpful assistant designed to display .txt files in an aesthetically pleasing way."
+TRANSLATION_PROMPT_USR = "Take this string of text and clean it up into an HTML file that is legible. The original document includes checkboxes and redacted information. Must output HTML code."
 CHATBOT_ASST_INSTRUCTIONS_ATT = "IEP Chatbot that answers parents' questions regarding their child's Individualized Education Plan (Document Attached) according to San Francisco's Educational Rules and Guidelines (Handbook Attached)." + CHAR_LIMIT_MESSAGE
 CHATBOT_ASST_INSTRUCTIONS_EMPTY = "IEP Chatbot that answers parents' questions regarding their child's Individualized Education Plan and Process specific to San Francisco's Educational Rules and Guidelines (Handbook Attached)." + \
     CHAR_LIMIT_MESSAGE
@@ -34,50 +33,6 @@ DEFAULT_PROMPTS = ["Can you summarize the first page of my IEP document?",
                    "Can family members attend the IEP meeting?",
                    "What are SMART goals in an IEP, and why are they important?"]
 
-class ConnectionManager:
-    def __init__(self, api_key: str):
-        self.api_key = api_key
-        self.active_connections: List[WebSocket] = []
-        self.connection_to_chatbot: Dict[WebSocket, Chatbot] = {}
-
-    async def connect(self, websocket: WebSocket):
-        await websocket.accept()
-        self.active_connections.append(websocket)
-        self.connection_to_chatbot[websocket] = Chatbot(self.api_key)
-
-    async def disconnect(self, websocket: WebSocket):
-        self.active_connections.remove(websocket)
-        self.connection_to_chatbot.pop(websocket, None)
-
-    async def handle_messages(self, message: str, websocket: WebSocket):
-        try:
-            if websocket not in self.connection_to_chatbot: raise Exception('Websocket Not Found')
-            chatbot = self.connection_to_chatbot[websocket]
-            if "bytes" in message:
-                print('Byte Data Received')
-                file_data = io.BytesIO(message["bytes"])
-                await chatbot.upload_file(websocket, file_data)
-            elif "text" in message:
-                message_data = json.loads(message["text"])
-                print(message_data)
-                message_type = message_data["type"]
-                if message_type == 'pong':
-                    print("Pong Received")
-                elif message_type == 'file_retreival':
-                    print("File Retreival Request Received")
-                    await chatbot.add_file(websocket, message_data["file_id"])
-                elif message_type == 'language_configuration':
-                    print("Language Configuration Request Received")
-                    await chatbot.configure_language(websocket, message_data["language"])
-                elif message_type == 'chat_completion':
-                    print("Chat Completion Request Received")
-                    await chatbot.generate_response(websocket, message_data["content"])
-                else:
-                    raise Exception('Invalid Text Message')
-        except Exception as e:
-            print(f"Error Message: {e}\nTraceback: {traceback.print_exc()}")
-            if websocket.application_state == WebSocketState.CONNECTED:
-                await websocket.send_text(json.dumps({'type': 'error', 'message': str(e)}))
 
 class Chatbot:
     def __init__(self, api_key=str) -> None:
@@ -155,7 +110,6 @@ class Chatbot:
         print('Translation Sent')
 
     async def add_file(self, ws: WebSocket, file_id: str):
-        print('Add File')
         self._validate_language_config()
         self.assistant.add_file(file_id)
         print("Configuring IEP")
